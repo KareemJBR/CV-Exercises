@@ -1,6 +1,6 @@
 import cv2.cv2 as cv2
 import numpy as np
-import glob
+import glob     # will use it to get files' names
 
 if __name__ == "__main__":
     cameleon_dir = 'cameleon__N_8__sig_noise_5__sig_motion_103'
@@ -13,13 +13,13 @@ if __name__ == "__main__":
     for im_dir in (cameleon_dir, eagle_dir, einstein_dir, palm_dir):
         curr_target = cv2.imread(im_dir + '/target.jpg')
 
-        source_names = glob.glob(im_dir + "/*.jpg")
-        source_names.remove(im_dir + '\\target.jpg')
+        source_names = glob.glob(im_dir + "/*.jpg")     # a list of all .jpg files in the current directory
+        source_names.remove(im_dir + '\\target.jpg')    # keeping the source images only
 
         source_images = [cv2.imread(im_name) for im_name in source_names]
 
         counters = np.zeros(shape=curr_target.shape)
-        results = []
+        results = []    # for each directory, this list will have the results of warping the source images
 
         for source_image in source_images:
             sift = cv2.SIFT_create()
@@ -29,7 +29,7 @@ if __name__ == "__main__":
             kp2, des2 = sift.detectAndCompute(curr_target, None)
             matches = bf.knnMatch(des1, des2, k=2)
 
-            good_matches = []
+            good_matches = []   # keeping only the matches that passed the ratio test
             for m, n in matches:
                 if m.distance < ratio_test * n.distance:
                     good_matches.append([m])
@@ -48,7 +48,8 @@ if __name__ == "__main__":
 
             results.append(regIm)
 
-            ones = np.ones(shape=curr_target.shape)
+            ones = np.ones(shape=curr_target.shape)     # will use it for counting for each pixel how many pixels were
+            # mapped to it
             ones = cv2.warpPerspective(ones, h, (width, height), flags=2)
 
             for i in range(counters.shape[0]):
@@ -64,9 +65,9 @@ if __name__ == "__main__":
         for i in range(denoised_im.shape[0]):
             for j in range(denoised_im.shape[1]):
                 for k in range(denoised_im.shape[2]):
-                    if counters[i][j][k] != 0:
+                    if counters[i][j][k] != 0:      # avoiding dividing by 0
                         denoised_im[i][j][k] /= counters[i][j][k]
-                    denoised_im[i][j][k] /= 255
+                    denoised_im[i][j][k] /= 255     # colors values are kept as float values in the range [0, 1]
 
         cv2.imshow('Denoising Result', denoised_im)
         cv2.imshow('Target Image', curr_target)
