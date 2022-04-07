@@ -43,12 +43,6 @@ if __name__ == "__main__":
         else:  # "Traitement-dimage-drone-.jpeg":
             edge_map = cv2.Canny(im, 100, 200)
 
-        # plt.figure()
-        # plt.subplot(1, 2, 1)
-        # plt.imshow(im, cmap='gray', vmin=0, vmax=255)
-        # plt.subplot(1, 2, 2)
-        # plt.imshow(edge_map, cmap='gray', vmin=0, vmax=255)
-
         cv2.imshow('image', im)
         cv2.imshow('edge map', edge_map)
         cv2.waitKey(0)
