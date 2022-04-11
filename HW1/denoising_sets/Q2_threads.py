@@ -79,6 +79,8 @@ if __name__ == "__main__":
     einstein_dir = 'einstein__N_5__sig_noise_5__sig_motion_274'
     palm_dir = 'palm__N_4__sig_noise_5__sig_motion_ROT'
 
+    # we shall use threads to compute the denoised images concurrently leading to an improvement in time complexity
+
     x = threading.Thread(target=denoise, args=(cameleon_dir, 10, 0.8,))
     x.start()
 
@@ -91,7 +93,7 @@ if __name__ == "__main__":
     w = threading.Thread(target=denoise, args=(palm_dir, 10, 0.8,))
     w.start()
 
-    x.join()
+    x.join()    # joining threads to the main thread
     y.join()
     z.join()
     w.join()
