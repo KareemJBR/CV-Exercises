@@ -1,7 +1,7 @@
 import cv2.cv2 as cv2
 import glob
 from copy import deepcopy
-from scipy.signal import convolve2d
+from scipy.signal import convolve
 import numpy as np
 
 
@@ -16,6 +16,20 @@ def add_votes(point1, point2, xi1, xi2, votes_im):
     y_values = np.arange(intersection_point[1], mid_point[1])
 
     # TODO: add votes to the matrix
+
+
+def getGradient(edge_im):
+    sobel_x_kernel = np.array([[-1, 0, 1],
+                               [-2, 0, 2],
+                               [-1, 0, 1]])
+
+    sobel_y_kernel = np.array([[1, -2, 1],
+                               [0, 0, 0],
+                               [-1, 2, -1]])
+
+    sobel_x = convolve(sobel_x_kernel, edge_im, method='fft')
+    sobel_y = convolve(sobel_y_kernel, edge_im, method='fft')
+    return np.sqrt(np.power(sobel_x, 2) + np.power(sobel_y, 2))
 
 
 if __name__ == "__main__":
@@ -59,21 +73,10 @@ if __name__ == "__main__":
         else:  # "Traitement-dimage-drone-.jpeg":
             edge_map = cv2.Canny(im, 100, 200)
 
-        # sobel_x_kernel = np.array([[-1, 0, 1],
-        #                            [-2, 0, 2],
-        #                            [-1, 0, 1]])
-        #
-        # sobel_y_kernel = np.array([[1, -2, 1],
-        #                            [0, 0, 0],
-        #                            [-1, 2, -1]])
-        #
-        # sobel_x = convolve2d(sobel_x_kernel, edge_map)
-        # sobel_y = convolve2d(sobel_y_kernel, edge_map)
-        #
-        # gradient_map = np.sqrt(np.power(sobel_x, 2) + np.power(sobel_y, 2))
+        gradient_map = getGradient(edge_map)
 
         cv2.imshow('image', im)
         cv2.imshow('edge map', edge_map)
-        # cv2.imshow('gradient', gradient_map)
+        cv2.imshow('gradient', gradient_map)
 
         cv2.waitKey(0)
