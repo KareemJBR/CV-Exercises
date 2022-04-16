@@ -71,14 +71,14 @@ def denoise(im_dir, ransac_iterations, ratio_test):
     # the following commented code is used to write the result to a jpg file
 
     # if im_dir == 'cameleon__N_8__sig_noise_5__sig_motion_103':
-    #     denoised_file = 'Cameleon Denoised.jpg'
+        # denoised_file = 'Cameleon Denoised.jpg'
     # elif im_dir == 'eagle__N_16__sig_noise_13__sig_motion_76':
-    #     denoised_file = 'Eagle Denoised.jpg'
+        # denoised_file = 'Eagle Denoised.jpg'
     # elif im_dir == 'einstein__N_5__sig_noise_5__sig_motion_274':
-    #     denoised_file = 'Einstein Denoised.jpg'
+        # denoised_file = 'Einstein Denoised.jpg'
     # else:
-    #     denoised_file = 'Palm Denoised.jpg'
-    #
+        # denoised_file = 'Palm Denoised.jpg'
+
     # denoised_im *= 255
     # cv2.imwrite(denoised_file, denoised_im)
     # denoised_im /= 255
