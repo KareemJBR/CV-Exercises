@@ -5,12 +5,21 @@ from scipy.signal import convolve
 import numpy as np
 
 
-def add_votes(point1, point2, xi1, xi2, votes_im):
-    mid_point = ((point1[0] + point2[0]) // 2, (point1[1] + point2[1]) // 2)
+def draw_ellipse_centers(votes_im, target_im, thresh_param, color_in_rgb):
+    for row in range(votes_im.shape[0]):
+        for col in range(votes_im.shape[1]):
+            if votes_im[row][col] >= thresh_param:
+                target_im[row][col][0] = color_in_rgb[0]
+                target_im[row][col][1] = color_in_rgb[1]
+                target_im[row][col][2] = color_in_rgb[2]
+
+
+def add_votes(point_1, point_2, xi1, xi2, votes_im):
+    mid_point = ((point_1[0] + point_2[0]) // 2, (point_1[1] + point_2[1]) // 2)
 
     intersection_point = (
-        (point1[1] - point2[1] - (point1[0] * xi1) + (point2[0] * xi2)) / (xi2 - xi1),
-        (xi1 * xi2 * (point2[0] - point1[0]) - (point2[1] * xi1) + (point1[1] * xi2))/(xi2 - xi1))
+        (point_1[1] - point_2[1] - (point_1[0] * xi1) + (point_2[0] * xi2)) / (xi2 - xi1),
+        (xi1 * xi2 * (point_2[0] - point_1[0]) - (point_2[1] * xi1) + (point_1[1] * xi2))/(xi2 - xi1))
 
     x_values = np.arange(intersection_point[0], mid_point[0])
     y_values = np.arange(intersection_point[1], mid_point[1])
@@ -54,7 +63,7 @@ if __name__ == "__main__":
         elif im_name == "1271488188_2077d21f46_b.jpg":
             edge_map = cv2.Canny(im, 70, 150)
         elif im_name == "alvtd333_alvin_template_small_ellipse.png":
-            edge_map = cv2.Canny(im, 100, 200)
+            edge_map = cv2.Canny(im, 80, 200)
         elif im_name == "gettyimages-1212455495-612x612.jpg":
             edge_map = cv2.Canny(im, 160, 180)
         elif im_name == "hammer-tissot-big.jpg":
@@ -75,8 +84,26 @@ if __name__ == "__main__":
 
         gradient_map = getGradient(edge_map)
 
+        ellipse_center_votes = np.zeros((im.shape[0], im.shape[1]))
+
+        for i in range(im.shape[0]):
+            for j in range(im.shape[1]):
+                point1 = (i, j)
+
+                for i2 in range(im.shape[0]):
+                    for j2 in range(im.shape[1]):
+                        point2 = (i2, j2)
+                        # TODO: find xi1 and xi2
+                        add_votes(point1, point2, 0, 0, ellipse_center_votes)
+
+        ellipse_center_votes /= 2   # we counted the votes twice
+        thresh = 10
+
+        draw_ellipse_centers(ellipse_center_votes, im_content, thresh, (255, 0, 0))
+
         cv2.imshow('image', im)
         cv2.imshow('edge map', edge_map)
         cv2.imshow('gradient', gradient_map)
+        cv2.imshow('Result', im_content)
 
         cv2.waitKey(0)
