@@ -32,7 +32,7 @@ def get_ellipse_centers(votes_im, thresh_param):
     return el_centers
 
 
-def add_votes(point_1, point_2, xi1, xi2, votes_im,edge_map):
+def add_votes(point_1, point_2, xi1, xi2, votes_im):
     """
     Adds votes for finding the ellipses' centers based on the algorithm in paper for finding ellipses' centers.
     :param point_1: The first point in the algorithm (the point P).
@@ -44,38 +44,19 @@ def add_votes(point_1, point_2, xi1, xi2, votes_im,edge_map):
     """
 
     if xi2 != xi1:
-        mid_point = ((point_1[0] + point_2[0]) // 2, (point_1[1] + point_2[1]) // 2) #M
+        mid_point = ((point_1[0] + point_2[0]) // 2, (point_1[1] + point_2[1]) // 2)     # M
 
         intersection_point = (
             (point_1[1] - point_2[1] - (point_1[0] * xi1) + (point_2[0] * xi2)) / (xi2 - xi1),
-            (xi1 * xi2 * (point_2[0] - point_1[0]) - (point_2[1] * xi1) + (point_1[1] * xi2))/(xi2 - xi1)) #T
+            (xi1 * xi2 * (point_2[0] - point_1[0]) - (point_2[1] * xi1) + (point_1[1] * xi2))/(xi2 - xi1))   # T
 
-        # x_values = np.arange(intersection_point[0], mid_point[0])
-        # y_values = np.arange(intersection_point[1], mid_point[1])
+        tm_slope = (intersection_point[1] - mid_point[1]) / (intersection_point[0] - mid_point[0])
+        tm_const = mid_point[1] - (tm_slope * mid_point[0])
 
-        temp = np.zeros(votes_im.shape)
-
-        lines = cv2.HoughLines(edge_map, 1, np.pi / 180, 200)
-        for rho, theta in lines[0]:
-            a = np.cos(theta)
-            b = np.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            x1 = int(x0 + 1000 * (-b))
-            y1 = int(y0 + 1000 * (a))
-            x2 = int(x0 - 1000 * (-b))
-            y2 = int(y0 - 1000 * (a))
-
-            cv2.line(temp, (x1, y1), (x2, y2), (0, 0, 255), 2)
-
-        cv2.imshow('full 255', temp)
-        temp /= 255
-        cv2.imshow('post processing', temp)
-
-
-
-        # for x,y in
-        # TODO: add votes to the matrix
+        for r in range(votes_im.shape[0]):
+            for c in range(votes_im.shape[1]):
+                if np.abs(r * tm_slope + tm_const - c) < 1:
+                    votes_im[r][c] += 1
 
 
 def getGradient(edge_im):
@@ -113,7 +94,7 @@ if __name__ == "__main__":
         im = cv2.cvtColor(im_content, cv2.COLOR_RGB2GRAY)
 
         if im_name == "5da02f8f443e6-brondby-haveby-allotment-gardens-copenhagen-denmark-7.jpg.png":
-            edge_map = cv2.Canny(im, 180, 240)
+            edge_map = cv2.Canny(im, 100, 500, apertureSize=3, L2gradient=True)
         elif im_name == "72384675-very-long-truck-trailer-for-exceptional-transport-with-many-sturdy-tires.webp":
             edge_map = cv2.Canny(im, 50, 255)
         elif im_name == "1271488188_2077d21f46_b.jpg":
@@ -142,15 +123,19 @@ if __name__ == "__main__":
 
         ellipse_center_votes = np.zeros((im.shape[0], im.shape[1]))
 
-        for i in range(im.shape[0]):
-            for j in range(im.shape[1]):
-                point1 = (i, j)
+        # TODO: choose P and Q
 
-                for i2 in range(im.shape[0]):
-                    for j2 in range(im.shape[1]):
-                        point2 = (i2, j2)
-                        add_votes(point1, point2, gradient_map[point1[0]][point1[1]],
-                                  gradient_map[point2[0]][point2[1]], ellipse_center_votes,edge_map)
+        for i in range(edge_map.shape[0]):
+            for j in range(edge_map.shape[1]):
+                if edge_map[i][j] >= 1:
+                    p1 = (i, j)
+
+                    for k in range(edge_map.shape[0]):
+                        for l in range(edge_map.shape[1]):
+                            p2 = (k, l)
+                            if edge_map[k][l] != 0:
+                                add_votes(p1, p2, gradient_map[p1[0], p1[1]], gradient_map[p2[0], p2[1]],
+                                          ellipse_center_votes)
 
         ellipse_center_votes /= 2   # we counted the votes twice
         thresh = 10
