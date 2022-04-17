@@ -32,26 +32,50 @@ def get_ellipse_centers(votes_im, thresh_param):
     return el_centers
 
 
-def add_votes(point_1, point_2, xi1, xi2, votes_im):
+def add_votes(point_1, point_2, xi1, xi2, votes_im,edge_map):
     """
     Adds votes for finding the ellipses' centers based on the algorithm in paper for finding ellipses' centers.
     :param point_1: The first point in the algorithm (the point P).
     :param point_2: The last point in the algorithm (the point Q).
-    :param xi1: The value of xi1 in the algorithm.
+    :param xi1: The value of xi1 in the algorithm
     :param xi2: The value of xi2 in the algorithm.
     :param votes_im: The matrix containing all votes so far.
     :return: None
     """
-    mid_point = ((point_1[0] + point_2[0]) // 2, (point_1[1] + point_2[1]) // 2)
 
-    intersection_point = (
-        (point_1[1] - point_2[1] - (point_1[0] * xi1) + (point_2[0] * xi2)) / (xi2 - xi1),
-        (xi1 * xi2 * (point_2[0] - point_1[0]) - (point_2[1] * xi1) + (point_1[1] * xi2))/(xi2 - xi1))
+    if xi2 != xi1:
+        mid_point = ((point_1[0] + point_2[0]) // 2, (point_1[1] + point_2[1]) // 2) #M
 
-    x_values = np.arange(intersection_point[0], mid_point[0])
-    y_values = np.arange(intersection_point[1], mid_point[1])
+        intersection_point = (
+            (point_1[1] - point_2[1] - (point_1[0] * xi1) + (point_2[0] * xi2)) / (xi2 - xi1),
+            (xi1 * xi2 * (point_2[0] - point_1[0]) - (point_2[1] * xi1) + (point_1[1] * xi2))/(xi2 - xi1)) #T
 
-    # TODO: add votes to the matrix
+        # x_values = np.arange(intersection_point[0], mid_point[0])
+        # y_values = np.arange(intersection_point[1], mid_point[1])
+
+        temp = np.zeros(votes_im.shape)
+
+        lines = cv2.HoughLines(edge_map, 1, np.pi / 180, 200)
+        for rho, theta in lines[0]:
+            a = np.cos(theta)
+            b = np.sin(theta)
+            x0 = a * rho
+            y0 = b * rho
+            x1 = int(x0 + 1000 * (-b))
+            y1 = int(y0 + 1000 * (a))
+            x2 = int(x0 - 1000 * (-b))
+            y2 = int(y0 - 1000 * (a))
+
+            cv2.line(temp, (x1, y1), (x2, y2), (0, 0, 255), 2)
+
+        cv2.imshow('full 255', temp)
+        temp /= 255
+        cv2.imshow('post processing', temp)
+
+
+
+        # for x,y in
+        # TODO: add votes to the matrix
 
 
 def getGradient(edge_im):
@@ -126,7 +150,7 @@ if __name__ == "__main__":
                     for j2 in range(im.shape[1]):
                         point2 = (i2, j2)
                         add_votes(point1, point2, gradient_map[point1[0]][point1[1]],
-                                  gradient_map[point2[0]][point2[1]], ellipse_center_votes)
+                                  gradient_map[point2[0]][point2[1]], ellipse_center_votes,edge_map)
 
         ellipse_center_votes /= 2   # we counted the votes twice
         thresh = 10
@@ -142,3 +166,5 @@ if __name__ == "__main__":
         cv2.imshow('Result', im_content)
 
         cv2.waitKey(0)
+
+        break
