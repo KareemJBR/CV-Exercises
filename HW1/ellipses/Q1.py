@@ -32,15 +32,16 @@ def get_ellipse_centers(votes_im, thresh_param):
     return el_centers
 
 
-def add_votes(point_1, point_2, votes_im):
+def add_votes(point_1, point_2, xi1, xi2, votes_im):
     """
     Adds votes for finding the ellipses' centers based on the algorithm in paper for finding ellipses' centers.
     :param point_1: The first point in the algorithm (the point P).
-    :param point_2: The last point in the algorithm (the point Q)
+    :param point_2: The last point in the algorithm (the point Q).
+    :param xi1: The value of xi1 in the algorithm.
+    :param xi2: The value of xi2 in the algorithm.
     :param votes_im: The matrix containing all votes so far.
     :return: None
     """
-    xi1, xi2 = 0.3, 0.3     # TODO: calculate the right values for xi1 and xi2
     mid_point = ((point_1[0] + point_2[0]) // 2, (point_1[1] + point_2[1]) // 2)
 
     intersection_point = (
@@ -124,8 +125,8 @@ if __name__ == "__main__":
                 for i2 in range(im.shape[0]):
                     for j2 in range(im.shape[1]):
                         point2 = (i2, j2)
-                        # TODO: find xi1 and xi2
-                        add_votes(point1, point2, ellipse_center_votes)
+                        add_votes(point1, point2, gradient_map[point1[0]][point1[1]],
+                                  gradient_map[point2[0]][point2[1]], ellipse_center_votes)
 
         ellipse_center_votes /= 2   # we counted the votes twice
         thresh = 10
