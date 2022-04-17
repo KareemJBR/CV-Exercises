@@ -3,7 +3,15 @@ import glob
 from copy import deepcopy
 from scipy.signal import convolve
 import numpy as np
+from tensorflow.keras.preprocessing import image
 
+
+def contrastEnhance(im, range):
+    a = float(255 / (range[1] - range[0]))
+    b = 0 - a * range[0]
+    # print(a, b)
+    nim = a * im.astype(np.float32) + b
+    return nim
 
 def draw_ellipse(ellipse_centers, target_im, ellipse_color):
     """
@@ -44,19 +52,23 @@ def add_votes(point_1, point_2, xi1, xi2, votes_im):
     """
 
     if xi2 != xi1:
-        mid_point = ((point_1[0] + point_2[0]) // 2, (point_1[1] + point_2[1]) // 2)     # M
+        mid_point = (int((point_1[0] + point_2[0]) // 2), int((point_1[1] + point_2[1]) // 2))  # M
 
         intersection_point = (
-            (point_1[1] - point_2[1] - (point_1[0] * xi1) + (point_2[0] * xi2)) / (xi2 - xi1),
-            (xi1 * xi2 * (point_2[0] - point_1[0]) - (point_2[1] * xi1) + (point_1[1] * xi2))/(xi2 - xi1))   # T
+            int((point_1[1] - point_2[1] - (point_1[0] * xi1) + (point_2[0] * xi2)) // (xi2 - xi1))+1,
+            int((xi1 * xi2 * (point_2[0] - point_1[0]) - (point_2[1] * xi1) + (point_1[1] * xi2)) // (xi2 - xi1)))  # T
+        temp = np.zeros(votes_im.shape)
+        votes_im = cv2.line(temp, mid_point, intersection_point, (0.0001, 0, 0), 1) + votes_im
 
-        tm_slope = (intersection_point[1] - mid_point[1]) / (intersection_point[0] - mid_point[0])
-        tm_const = mid_point[1] - (tm_slope * mid_point[0])
+    return votes_im
 
-        for r in range(votes_im.shape[0]):
-            for c in range(votes_im.shape[1]):
-                if np.abs(r * tm_slope + tm_const - c) < 1:
-                    votes_im[r][c] += 1
+        # tm_slope = (intersection_point[1] - mid_point[1]) / (intersection_point[0] - mid_point[0])
+        # tm_const = mid_point[1] - (tm_slope * mid_point[0])
+        #
+        # for r in range(votes_im.shape[0]):
+        #     for c in range(votes_im.shape[1]):
+        #         if np.abs(r * tm_slope + tm_const - c) < 1:
+        #             votes_im[r][c] += 1
 
 
 def getGradient(edge_im):
@@ -95,6 +107,7 @@ if __name__ == "__main__":
 
         if im_name == "5da02f8f443e6-brondby-haveby-allotment-gardens-copenhagen-denmark-7.jpg.png":
             edge_map = cv2.Canny(im, 100, 500, apertureSize=3, L2gradient=True)
+            cv2.imshow('edge map', edge_map)
         elif im_name == "72384675-very-long-truck-trailer-for-exceptional-transport-with-many-sturdy-tires.webp":
             edge_map = cv2.Canny(im, 50, 255)
         elif im_name == "1271488188_2077d21f46_b.jpg":
@@ -110,7 +123,7 @@ if __name__ == "__main__":
         elif im_name == "images.jpg":
             edge_map = cv2.Canny(im, 100, 200)
         elif im_name == "nEKGD2wNiwqrTOc63kiWZT7b4.png":
-            edge_map = cv2.Canny(im, 150, 200)
+            edge_map = cv2.Canny(im, 100, 500, apertureSize=3, L2gradient=True)
         elif im_name == "s-l400.jpg":
             edge_map = cv2.Canny(im, 100, 180)
         elif im_name == "sewage-treatment-plant-wastewater-treatment-water-use-filtration-effluent-and-waste-water" \
@@ -121,34 +134,101 @@ if __name__ == "__main__":
 
         gradient_map = getGradient(edge_map)
 
-        ellipse_center_votes = np.zeros((im.shape[0], im.shape[1]))
+
+
+        scale_percent = 25  # percent of original size
+        width = int(edge_map.shape[1] * scale_percent / 100)
+        height = int(edge_map.shape[0] * scale_percent / 100)
+        dim = (width, height)
+        resized = cv2.resize(edge_map, dim, interpolation=cv2.INTER_CUBIC)
+        im_content_resized = cv2.resize(im_content, dim, interpolation=cv2.INTER_CUBIC)
+        ellipse_center_votes = np.zeros(resized.shape)
+        gradient_map = getGradient(resized)
+        # cv2.imshow("Resized image", resized)
+
 
         # TODO: choose P and Q
 
-        for i in range(edge_map.shape[0]):
-            for j in range(edge_map.shape[1]):
-                if edge_map[i][j] >= 1:
+        for i in range(resized.shape[0]):
+            for j in range(resized.shape[1]):
+                if resized[i][j] >= 1:
                     p1 = (i, j)
 
-                    for k in range(edge_map.shape[0]):
-                        for l in range(edge_map.shape[1]):
-                            p2 = (k, l)
-                            if edge_map[k][l] != 0:
-                                add_votes(p1, p2, gradient_map[p1[0], p1[1]], gradient_map[p2[0], p2[1]],
-                                          ellipse_center_votes)
+                    for k in range(resized.shape[0]):
+                        for l in range(resized.shape[1]):
+                            if resized[k][l] != 0 and (i!=k or j!=l):
+                                p2 = (k, l)
+                                ellipse_center_votes = add_votes(p1, p2, gradient_map[p1[0], p1[1]],
+                                                                 gradient_map[p2[0], p2[1]],
+                                                                 ellipse_center_votes)
 
-        ellipse_center_votes /= 2   # we counted the votes twice
-        thresh = 10
+        cv2.imshow('ellipse_center_votes', ellipse_center_votes)
+        ellipse_center_votes = contrastEnhance(ellipse_center_votes, [np.min(np.ravel(ellipse_center_votes)), np.max(np.ravel(ellipse_center_votes))])
+        cv2.imshow('ellipse_center_votes -contrast', ellipse_center_votes/510)
+        cv2.imshow('im_content_resized', im_content_resized)
+        ellipse_center_votes /= 510
 
-        centers = get_ellipse_centers(ellipse_center_votes, thresh)
+        for i in range (ellipse_center_votes.shape[0]):
+            for j in range (ellipse_center_votes.shape[1]):
+                if ellipse_center_votes[i][j]>np.max(np.ravel(ellipse_center_votes))-0.0005:
+                    # ellipse_center_votes = cv2.circle(ellipse_center_votes, (i, j), 3, (255, 0, 0), 3)
+                    im_content_resized = cv2.circle(im_content_resized, (i, j), 2, (0, 0, 0), 2)
+                #     # ellipse_center_votes[i][j] = 1
+                # else:
+                #     ellipse_center_votes[i][j] = 0
+
+        cv2.imshow('res', im_content_resized)
+
+        scale_percent = 400  # percent of original size
+        width = int(edge_map.shape[1] * scale_percent / 100)
+        height = int(edge_map.shape[0] * scale_percent / 100)
+        dim = (width, height)
+        im_content_resized = cv2.resize(im_content_resized, dim, interpolation=cv2.INTER_CUBIC)
+        cv2.imshow('resized-res', im_content_resized)
+
+
+
+
+        # thresh = 10
+        # centers = get_ellipse_centers(ellipse_center_votes, thresh)
+
+
+        # im_lines = cv2.HoughLinesP(ellipse_center_votes, 1, np.pi / 180, 0.5, minLineLength=10, maxLineGap=250)
+        #
+        # for line in im_lines:
+        #     x1, y1, x2, y2 = line[0]
+        #     cv2.line(temp, (x1, y1), (x2, y2), (255, 0, 0), 3)
+        #
+        # cv2.imshow('temp', temp)
+        # lines = cv2.HoughLines(edge_map, 1, np.pi / 180, 70)
+        # for rho, theta in lines[0]:
+        #     a = np.cos(theta)
+        #     b = np.sin(theta)
+        #     x0 = a * rho
+        #     y0 = b * rho
+        #     pt1 = (int(x0 + 1000 * (-b)), int(y0 + 1000 * (a)))
+        #     pt2 = (int(x0 - 1000 * (-b)), int(y0 - 1000 * (a)))
+        #     temp = cv2.line(temp, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
+
+        # temp[int(x0)][int(y0)] = 255
+
+        #
+        # lines = cv2.HoughLines(temp, 1, np.pi / 180, 200)
+        # for rho, theta in lines[0]:
+        #     a = np.cos(theta)
+        #     b = np.sin(theta)
+        #     x0 = a * rho
+        #     y0 = b * rho
+        #
+        #     im_content = cv2.circle(im_content, (x0,y0), 3,(255,0,0),2 )
 
         # bonus:
-        draw_ellipse(centers, im_content, (255, 255, 0))
+        # draw_ellipse(centers, im_content, (255, 255, 0))
 
-        cv2.imshow('image', im)
-        cv2.imshow('edge map', edge_map)
-        cv2.imshow('gradient', gradient_map)
-        cv2.imshow('Result', im_content)
+        # cv2.imshow('image', im)
+        # cv2.imshow('edge map', edge_map)
+        # cv2.imshow('gradient', gradient_map)
+        # cv2.imshow('Result', im_content)
 
         cv2.waitKey(0)
 
