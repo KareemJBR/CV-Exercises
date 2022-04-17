@@ -5,16 +5,42 @@ from scipy.signal import convolve
 import numpy as np
 
 
-def draw_ellipse_centers(votes_im, target_im, thresh_param, color_in_rgb):
+def draw_ellipse(ellipse_centers, target_im, ellipse_color):
+    """
+    Finds the parameters for the ellipses in the image and draws them.
+    :param ellipse_centers: A list of tuples containing all ellipses' centers in the image.
+    :param ellipse_color: The color to use in drawing the ellipses.
+    :param target_im: The image in RGB to draw the detected ellipses on.
+    :return: None
+    """
+    # TODO: find the remaining ellipse parameters (B, C, D) then draw the ellipse using cv2.ellipse)
+    pass
+
+
+def get_ellipse_centers(votes_im, thresh_param):
+    """
+    Detects ellipses' centers based on votes.
+    :param votes_im: Matrix of votes for ellipses' centers in the image.
+    :param thresh_param: Threshold parameter used to detect the centers.
+    :return: A list of tuples where each tuple contains the row and col of the center.
+    """
+    el_centers = []
     for row in range(votes_im.shape[0]):
         for col in range(votes_im.shape[1]):
             if votes_im[row][col] >= thresh_param:
-                target_im[row][col][0] = color_in_rgb[0]
-                target_im[row][col][1] = color_in_rgb[1]
-                target_im[row][col][2] = color_in_rgb[2]
+                el_centers.append((row, col))
+    return el_centers
 
 
-def add_votes(point_1, point_2, xi1, xi2, votes_im):
+def add_votes(point_1, point_2, votes_im):
+    """
+    Adds votes for finding the ellipses' centers based on the algorithm in paper for finding ellipses' centers.
+    :param point_1: The first point in the algorithm (the point P).
+    :param point_2: The last point in the algorithm (the point Q)
+    :param votes_im: The matrix containing all votes so far.
+    :return: None
+    """
+    xi1, xi2 = 0.3, 0.3     # TODO: calculate the right values for xi1 and xi2
     mid_point = ((point_1[0] + point_2[0]) // 2, (point_1[1] + point_2[1]) // 2)
 
     intersection_point = (
@@ -28,6 +54,11 @@ def add_votes(point_1, point_2, xi1, xi2, votes_im):
 
 
 def getGradient(edge_im):
+    """
+    Calculates the gradient map based on an edge map.
+    :param edge_im: The edge map of the image.
+    :return: The gradient map calculated based on Sobel kernel.
+    """
     sobel_x_kernel = np.array([[-1, 0, 1],
                                [-2, 0, 2],
                                [-1, 0, 1]])
@@ -94,12 +125,15 @@ if __name__ == "__main__":
                     for j2 in range(im.shape[1]):
                         point2 = (i2, j2)
                         # TODO: find xi1 and xi2
-                        add_votes(point1, point2, 0, 0, ellipse_center_votes)
+                        add_votes(point1, point2, ellipse_center_votes)
 
         ellipse_center_votes /= 2   # we counted the votes twice
         thresh = 10
 
-        draw_ellipse_centers(ellipse_center_votes, im_content, thresh, (255, 0, 0))
+        centers = get_ellipse_centers(ellipse_center_votes, thresh)
+
+        # bonus:
+        draw_ellipse(centers, im_content, (255, 255, 0))
 
         cv2.imshow('image', im)
         cv2.imshow('edge map', edge_map)
