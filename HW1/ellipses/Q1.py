@@ -57,8 +57,19 @@ def add_votes(point_1, point_2, xi1, xi2, votes_im):
         intersection_point = (
             int((point_1[1] - point_2[1] - (point_1[0] * xi1) + (point_2[0] * xi2)) // (xi2 - xi1))+1,
             int((xi1 * xi2 * (point_2[0] - point_1[0]) - (point_2[1] * xi1) + (point_1[1] * xi2)) // (xi2 - xi1)))  # T
+
+        # print(mid_point, '.........', intersection_point)
         temp = np.zeros(votes_im.shape)
-        votes_im = cv2.line(temp, mid_point, intersection_point, (0.0001, 0, 0), 1) + votes_im
+        if intersection_point[0] != mid_point[0]:
+            tm_slope = (intersection_point[1] - mid_point[1]) / (intersection_point[0] - mid_point[0])
+            tm_const = mid_point[1] - (tm_slope * mid_point[0])
+
+            second_point_X= int( mid_point[0]+1)
+            second_point_Y = int(second_point_X*tm_slope + tm_const)
+
+            votes_im = cv2.line(temp, mid_point, (second_point_X,second_point_Y), (0.0001, 0, 0), 1) + votes_im
+        else:
+            votes_im = cv2.line(temp, mid_point,intersection_point, (0.0001, 0, 0), 1) + votes_im
 
     return votes_im
 
@@ -108,35 +119,46 @@ if __name__ == "__main__":
         if im_name == "5da02f8f443e6-brondby-haveby-allotment-gardens-copenhagen-denmark-7.jpg.png":
             edge_map = cv2.Canny(im, 100, 500, apertureSize=3, L2gradient=True)
             cv2.imshow('edge map', edge_map)
+            continue
         elif im_name == "72384675-very-long-truck-trailer-for-exceptional-transport-with-many-sturdy-tires.webp":
             edge_map = cv2.Canny(im, 50, 255)
+            continue
         elif im_name == "1271488188_2077d21f46_b.jpg":
             edge_map = cv2.Canny(im, 70, 150)
+            continue
         elif im_name == "alvtd333_alvin_template_small_ellipse.png":
             edge_map = cv2.Canny(im, 80, 200)
+            continue
         elif im_name == "gettyimages-1212455495-612x612.jpg":
             edge_map = cv2.Canny(im, 160, 180)
+            continue
         elif im_name == "hammer-tissot-big.jpg":
             edge_map = cv2.Canny(im, 100, 200)
+            continue
         elif im_name == "Headline-Pic.jpg":
             edge_map = cv2.Canny(im, 100, 200)
         elif im_name == "images.jpg":
             edge_map = cv2.Canny(im, 100, 200)
+            continue
         elif im_name == "nEKGD2wNiwqrTOc63kiWZT7b4.png":
             edge_map = cv2.Canny(im, 100, 500, apertureSize=3, L2gradient=True)
+            continue
         elif im_name == "s-l400.jpg":
             edge_map = cv2.Canny(im, 100, 180)
+            continue
         elif im_name == "sewage-treatment-plant-wastewater-treatment-water-use-filtration-effluent-and-waste-water" \
                         "-industrial-solutions-for-sewerage-water-treatment-and-rec-2H4RX20.jpg":
             edge_map = cv2.Canny(im, 100, 200)
+            continue
         else:  # "Traitement-dimage-drone-.jpeg":
             edge_map = cv2.Canny(im, 100, 200)
+            continue
 
         gradient_map = getGradient(edge_map)
 
 
 
-        scale_percent = 25  # percent of original size
+        scale_percent = 20  # percent of original size
         width = int(edge_map.shape[1] * scale_percent / 100)
         height = int(edge_map.shape[0] * scale_percent / 100)
         dim = (width, height)
@@ -144,6 +166,7 @@ if __name__ == "__main__":
         im_content_resized = cv2.resize(im_content, dim, interpolation=cv2.INTER_CUBIC)
         ellipse_center_votes = np.zeros(resized.shape)
         gradient_map = getGradient(resized)
+        black_board = np.zeros((resized.shape[0],resized.shape[1],3))
         # cv2.imshow("Resized image", resized)
 
 
@@ -168,23 +191,31 @@ if __name__ == "__main__":
         cv2.imshow('im_content_resized', im_content_resized)
         ellipse_center_votes /= 510
 
+
         for i in range (ellipse_center_votes.shape[0]):
             for j in range (ellipse_center_votes.shape[1]):
-                if ellipse_center_votes[i][j]>np.max(np.ravel(ellipse_center_votes))-0.0005:
+                if ellipse_center_votes[i][j]>np.max(np.ravel(ellipse_center_votes))-0.05:
                     # ellipse_center_votes = cv2.circle(ellipse_center_votes, (i, j), 3, (255, 0, 0), 3)
-                    im_content_resized = cv2.circle(im_content_resized, (i, j), 2, (0, 0, 0), 2)
+                    black_board = cv2.circle(black_board, (i, j), 2, (0, 0, 255), 2)
+
                 #     # ellipse_center_votes[i][j] = 1
                 # else:
                 #     ellipse_center_votes[i][j] = 0
 
+
         cv2.imshow('res', im_content_resized)
 
-        scale_percent = 400  # percent of original size
-        width = int(edge_map.shape[1] * scale_percent / 100)
-        height = int(edge_map.shape[0] * scale_percent / 100)
+        scale_percent = 500  # percent of original size
+        width = int(black_board.shape[1] * scale_percent / 100)
+        height = int(black_board.shape[0] * scale_percent / 100)
         dim = (width, height)
-        im_content_resized = cv2.resize(im_content_resized, dim, interpolation=cv2.INTER_CUBIC)
-        cv2.imshow('resized-res', im_content_resized)
+        black_board = cv2.resize(black_board, dim, interpolation=cv2.INTER_CUBIC)
+        black_board = black_board.astype(np.uint8)
+        cv2.imshow('black_board-res', black_board)
+        cv2.imshow('im_content-pre-res', im_content)
+        im_content += black_board
+
+        cv2.imshow('im_content-res', im_content)
 
 
 
