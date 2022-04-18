@@ -57,10 +57,8 @@ def denoise(im_dir, ransac_iterations, ratio_test):
     for res in results:
         denoised_im = denoised_im + res
 
-    denoised_im /= 255  # colors in cv2 are saved as values in [0, 1] instead of [0, 255]
-
     counters[counters == 0] = 1
-    denoised_im /= counters
+    denoised_im /= (255 * counters)     # colors in cv2 are saved as values in [0, 1] instead of [0, 255]
 
     # the following commented code is used to write the result to a jpg file
 
@@ -88,24 +86,5 @@ if __name__ == "__main__":
     einstein_dir = 'einstein__N_5__sig_noise_5__sig_motion_274'
     palm_dir = 'palm__N_4__sig_noise_5__sig_motion_ROT'
 
-    # we shall use threads to compute the denoised images concurrently leading to an improvement in time complexity
-
-    # x = threading.Thread(target=denoise, args=(cameleon_dir, 10, 0.8,))
-    # x.start()
-    #
-    # y = threading.Thread(target=denoise, args=(eagle_dir, 10, 0.8,))
-    # y.start()
-    #
-    # z = threading.Thread(target=denoise, args=(einstein_dir, 10, 0.8,))
-    # z.start()
-    #
-    # w = threading.Thread(target=denoise, args=(palm_dir, 10, 0.8,))
-    # w.start()
-    #
-    # x.join()    # joining threads to the main thread
-    # y.join()
-    # z.join()
-    # w.join()
-
     for im_d in (cameleon_dir, eagle_dir, einstein_dir, palm_dir):
-        denoise(im_d, 10, 0.8)
+        denoise(im_d, 50, 0.8)
