@@ -3,7 +3,6 @@ import glob
 from copy import deepcopy
 from scipy.signal import convolve
 import numpy as np
-from tensorflow.keras.preprocessing import image
 
 
 def contrastEnhance(im, range):
@@ -118,7 +117,7 @@ if __name__ == "__main__":
 
         if im_name == "5da02f8f443e6-brondby-haveby-allotment-gardens-copenhagen-denmark-7.jpg.png":
             edge_map = cv2.Canny(im, 100, 500, apertureSize=3, L2gradient=True)
-            cv2.imshow('edge map', edge_map)
+            # cv2.imshow('edge map', edge_map)
             continue
         elif im_name == "72384675-very-long-truck-trailer-for-exceptional-transport-with-many-sturdy-tires.webp":
             edge_map = cv2.Canny(im, 50, 255)
@@ -194,7 +193,8 @@ if __name__ == "__main__":
 
 
         cv2.imshow('ellipse_center_votes', ellipse_center_votes)
-        ellipse_center_votes = contrastEnhance(ellipse_center_votes, [np.min(np.ravel(ellipse_center_votes)), np.max(np.ravel(ellipse_center_votes))])
+        ellipse_center_votes = contrastEnhance(ellipse_center_votes, [np.min(np.ravel(ellipse_center_votes)),
+                                                                      np.max(np.ravel(ellipse_center_votes))])
         cv2.imshow('ellipse_center_votes -contrast', ellipse_center_votes/510)
         cv2.imshow('im_content_resized', im_content_resized)
         ellipse_center_votes /= 510
