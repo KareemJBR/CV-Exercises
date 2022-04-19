@@ -5,6 +5,7 @@ import random
 
 
 def denoise(im_dir, ratio_test, ransac_iterations, k):
+    """Create a denoised image based on the source images and the target one in the given directory as an argument"""
     curr_target = cv2.imread(im_dir + '/target.jpg')
 
     source_names = glob.glob(im_dir + "/*.jpg")  # a list of all .jpg files in the current directory
