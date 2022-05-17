@@ -2,6 +2,7 @@ import numpy as np
 import cv2.cv2 as cv2
 import matplotlib.pyplot as plt
 from copy import deepcopy
+from scipy import linalg
 
 
 def DLT(p1, p2, point1, point2):
@@ -13,7 +14,6 @@ def DLT(p1, p2, point1, point2):
     a = np.array(a).reshape((4, 4))
 
     b = a.transpose() @ a
-    from scipy import linalg
     u, s, vh = linalg.svd(b, full_matrices=False)
 
     print('Triangulated point: ')
@@ -106,4 +106,19 @@ if __name__ == "__main__":
 
     # task 2
 
-    
+    RT1 = np.concatenate([np.eye(3), [[0], [0], [0]]], axis=-1)
+    P1 = cam_mat1 @ RT1  # projection matrix for C1
+
+    R, T = np.eye(3), np.zeros(3)
+
+    # RT matrix for C2 is the R and T obtained from stereo calibration.
+    RT2 = np.concatenate([R, T], axis=-1)
+    P2 = cam_mat2 @ RT2  # projection matrix for C2
+
+    p3ds = []
+    for uv1, uv2 in zip(points1, points2):
+        _p3d = DLT(P1, P2, uv1, uv2)
+        p3ds.append(_p3d)
+    p3ds = np.array(p3ds)
+
+    print(p3ds)
