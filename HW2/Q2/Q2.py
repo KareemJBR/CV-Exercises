@@ -1,4 +1,24 @@
 import numpy as np
+import cv2.cv2 as cv2
+import matplotlib.pyplot as plt
+from copy import deepcopy
+
+
+def DLT(p1, p2, point1, point2):
+    a = [point1[1] * p1[2, :] - p1[1, :],
+         p1[0, :] - point1[0] * p1[2, :],
+         point2[1] * p2[2, :] - p2[1, :],
+         p2[0, :] - point2[0] * p2[2, :]
+         ]
+    a = np.array(a).reshape((4, 4))
+
+    b = a.transpose() @ a
+    from scipy import linalg
+    u, s, vh = linalg.svd(b, full_matrices=False)
+
+    print('Triangulated point: ')
+    print(vh[3, 0:3] / vh[3, 3])
+    return vh[3, 0:3] / vh[3, 3]
 
 
 def get_matches(pts1_file, pts2_file):
@@ -44,5 +64,46 @@ def read_matrix(file_name):
 
 
 if __name__ == "__main__":
+
+    # task 1
+
     cam_mat1, cam_mat2 = read_matrix('cameraMatrix1.txt'), read_matrix('cameraMatrix2.txt')
     matches = get_matches('matchedPoints1.txt', 'matchedPoints2.txt')
+
+    im1, im2 = cv2.imread('house_1.png'), cv2.imread('house_2.png')
+
+    temp_im1, temp_im2 = deepcopy(im1), deepcopy(im2)
+
+    points1 = [k for k in matches.keys()]
+    points2 = [v for v in matches.values()]
+
+    colors = [
+        (255, 0, 0),
+        (255, 255, 0),
+        (0, 255, 0),
+        (0, 255, 255),
+        (0, 0, 255),
+        (255, 0, 255),
+        (0, 255, 255)
+    ]
+
+    for i in range(len(points1) - 1):
+        cv2.line(temp_im1, (int(points1[i][0]), int(points1[i][1])), (int(points1[i + 1][0]), int(points1[i + 1][1])),
+                 colors[i % len(colors)], thickness=2)
+
+    for i in range(len(points2) - 1):
+        cv2.line(temp_im2, (int(points2[i][0]), int(points2[i][1])), (int(points2[i + 1][0]), int(points2[i + 1][1])),
+                 colors[i % len(colors)], thickness=2)
+
+    plt.subplot(1, 2, 1)
+    plt.imshow(temp_im1)
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(temp_im2)
+
+    plt.savefig('our_matches_connected.jpg')
+    plt.show()
+
+    # task 2
+
+    
