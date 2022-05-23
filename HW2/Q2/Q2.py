@@ -1,8 +1,117 @@
-import numpy as numpy
+import numpy as np
 import cv2.cv2 as cv2
 import matplotlib.pyplot as plt
 import os
+import random
+import imageio
 from copy import deepcopy
+
+
+def create_gif(image_base_name, start_num, end_num, images_directory):
+    """
+    Creates a GIF file from the plots saved as JPG files.
+    :param image_base_name: The prefix of each image name in the directory.
+    :param start_num: The first number to concatenate to `image_base_name`.
+    :param end_num: The last number to concatenate to `image_base_name`.
+    :param images_directory: The path of the directory containing the JPG images.
+    :return: None
+    """
+
+    images = []
+
+    for file_num in range(start_num, end_num + 1):
+        curr_file_name = images_directory + image_base_name + str(file_num) + '.jpg'
+        images.append(imageio.imread(curr_file_name))
+
+    imageio.mimsave('our_reconstruction.gif', images)
+
+
+def get_random_rotation_matrix():
+    """Returns a random 3D rotation matrix"""
+
+    alpha, beta, gamma = random.uniform(0, 360), random.uniform(0, 360), random.uniform(0, 360)
+
+    yaw = np.array([
+        [np.cos(alpha), -1 * np.sin(alpha), 0],
+        [np.sin(alpha), np.cos(alpha), 0],
+        [0, 0, 1]
+    ])
+
+    pitch = np.array([
+        [np.cos(beta), 0, np.sin(beta)],
+        [0, 1, 0],
+        [-1 * np.sin(beta), 0, np.cos(beta)]
+    ])
+
+    roll = np.array([
+        [1, 0, 0],
+        [0, np.cos(gamma), -1 * np.sin(gamma)],
+        [0, np.sin(gamma), np.cos(gamma)]
+    ])
+
+    temp = np.matmul(yaw, pitch)
+    return np.matmul(temp, roll)
+
+
+def create_images(points, directory_path):
+    """Creates the images needed for creating the GIF as described in the PDF file."""
+    image_num = 1
+
+    for degree in range(10, 361, 10):
+        x_rotate = np.array([
+            [1, 0, 0],
+            [0, np.cos(degree / 360), -1 * np.cos(degree / 360)],
+            [0, np.sin(degree / 360), np.cos(degree / 360)]
+        ])
+
+        res = []
+
+        for point in points:
+            res.append(np.matmul(x_rotate, point))
+
+        x_coordinates = []
+        y_coordinates = []
+
+        for point in res:
+            x_coordinates.append(point[0])
+            y_coordinates.append(point[1])
+
+        plt.figure()
+        plt.scatter(x_coordinates, y_coordinates)
+        plt.ylabel('y')
+        plt.xlabel('x')
+
+        plt.plot(x_coordinates, y_coordinates)
+        plt.savefig(directory_path + 'plot' + str(image_num) + '.jpg')
+        image_num += 1
+
+    for degree in range(10, 361, 10):
+        y_rotate = np.array([
+            [np.cos(degree / 360), 0, np.sin(degree / 360)],
+            [0, 1, 0],
+            [-1 * np.sin(degree / 360), 0, np.cos(degree / 360)]
+        ])
+
+        res = []
+
+        for point in points:
+            res.append(np.matmul(y_rotate, point))
+
+        x_coordinates = []
+        y_coordinates = []
+
+        for point in res:
+            x_coordinates.append(point[0])
+            y_coordinates.append(point[1])
+
+        plt.figure()
+        plt.scatter(x_coordinates, y_coordinates)
+        plt.ylabel('y')
+        plt.xlabel('x')
+
+        plt.plot(x_coordinates, y_coordinates)
+        plt.savefig(directory_path + 'plot' + str(image_num) + '.jpg')
+        image_num += 1
 
 
 def get_matches(pts1_file, pts2_file):
@@ -43,7 +152,7 @@ def read_matrix(file_name):
                     temp.append(float(val))
                 res_mat.append(temp)
 
-    res_mat = numpy.array(res_mat)
+    res_mat = np.array(res_mat)
     return res_mat
 
 
@@ -53,7 +162,7 @@ def DLT(p1, p2, point1, point2):
          point2[1] * p2[2, :] - p2[1, :],
          p2[0, :] - point2[0] * p2[2, :]
          ]
-    a = numpy.array(a).reshape((4, 4))
+    a = np.array(a).reshape((4, 4))
 
     b = a.transpose() @ a
     from scipy import linalg
@@ -121,13 +230,13 @@ if __name__ == "__main__":
         pass
 
     points_3d = []
-    _sum = numpy.zeros(3)
+    _sum = np.zeros(3)
     for pt1, pt2 in zip(points1, points2):
         pt_3d = DLT(cam_mat1, cam_mat2, pt1, pt2)
         _sum += pt_3d
         points_3d.append(pt_3d)
 
-    points_3d = numpy.array(points_3d)
+    points_3d = np.array(points_3d)
     avg_points_3d = _sum / 22
     points_3d -= avg_points_3d
 
@@ -153,3 +262,24 @@ if __name__ == "__main__":
     plt.show()
 
     # last task: create images in for loops as described in the pdf file, then create the gif
+
+    random_rotation = get_random_rotation_matrix()
+    for i in range(len(points_3d)):
+        points_3d[i] = np.matmul(random_rotation, points_3d[i])
+
+    xis = []
+    yis = []
+
+    for point_3d in points_3d:
+        xis.append(point_3d[0])
+        yis.append(point_3d[1])
+
+    plt.scatter(xis, yis)
+    plt.ylabel('y')
+    plt.xlabel('x')
+
+    plt.plot(xis, yis)
+    plt.show()
+
+    create_images(points_3d, path + '\\')
+    create_gif('plot', 1, 72, path + '\\')
