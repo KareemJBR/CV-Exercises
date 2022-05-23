@@ -135,12 +135,21 @@ if __name__ == "__main__":
         colors[i] = (colors[i][0] / 255, colors[i][1] / 255, colors[i][2] / 255)
 
     plt.figure()
+
+    xis = []
+    yis = []
+
+    for point_3d in points_3d:
+        xis.append(point_3d[0])
+        yis.append(point_3d[1])
+
+    plt.scatter(xis, yis)
     plt.ylabel('y')
     plt.xlabel('x')
 
-    for i in range(21):
-        plt.plot(points_3d[i][:2], points_3d[i + 1][:2], linestyle='solid', color=colors[i % len(colors)])
+    plt.plot(xis, yis)
 
+    plt.savefig('our_matches_xy_projected.jpg')
     plt.show()
 
     # last task: create images in for loops as described in the pdf file, then create the gif
