@@ -47,7 +47,7 @@ if __name__ == "__main__":
     im1 = cv2.imread('location_2_frame_001.jpg')
     im2 = cv2.imread('location_2_frame_002.jpg')
 
-    # getImagePts(im1, im2, 's1', 's2')     # TODO: uncomment after tests
+    getImagePts(im1, im2, 's1', 's2')     # TODO: uncomment after tests
     getImagePts(im1, im2, 't1', 't2')
 
     s1 = np.load('s1.npy').astype(int)      # first set - left image points
