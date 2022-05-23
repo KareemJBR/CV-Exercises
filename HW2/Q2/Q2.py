@@ -1,11 +1,8 @@
 import numpy as numpy
 import cv2.cv2 as cv2
 import matplotlib.pyplot as plt
+import os
 from copy import deepcopy
-import plotly.express as px
-
-from scipy import linalg
-
 
 
 def get_matches(pts1_file, pts2_file):
@@ -49,23 +46,19 @@ def read_matrix(file_name):
     res_mat = numpy.array(res_mat)
     return res_mat
 
-def DLT(P1, P2, point1, point2):
-    A = [point1[1] * P1[2, :] - P1[1, :],
-         P1[0, :] - point1[0] * P1[2, :],
-         point2[1] * P2[2, :] - P2[1, :],
-         P2[0, :] - point2[0] * P2[2, :]
+
+def DLT(p1, p2, point1, point2):
+    a = [point1[1] * p1[2, :] - p1[1, :],
+         p1[0, :] - point1[0] * p1[2, :],
+         point2[1] * p2[2, :] - p2[1, :],
+         p2[0, :] - point2[0] * p2[2, :]
          ]
-    A = numpy.array(A).reshape((4, 4))
-    # print('A: ')
-    # print(A)
+    a = numpy.array(a).reshape((4, 4))
 
-    B = A.transpose() @ A
+    b = a.transpose() @ a
     from scipy import linalg
-    U, s, Vh = linalg.svd(B, full_matrices=False)
-
-    print('Triangulated point: ')
-    print(Vh[3, 0:3] / Vh[3, 3])
-    return Vh[3, 0:3] / Vh[3, 3]
+    u, s, vh = linalg.svd(b, full_matrices=False)
+    return vh[3, 0:3] / vh[3, 3]
 
 
 if __name__ == "__main__":
@@ -111,26 +104,43 @@ if __name__ == "__main__":
 
     # task 2
 
+    # creating directory for images to use in creating the gif
+    dir_name = "ImagesForGIF"
 
+    # parent directory path
+    parent_dir = os.getcwd()
 
+    # path
+    path = os.path.join(parent_dir, dir_name)
+
+    try:
+        os.mkdir(path)  # created the directory for images to use in creating the gif
+
+    except FileExistsError as e:
+        # directory already exists ... nothing is needed to be done
+        pass
 
     points_3d = []
-    sum = numpy.zeros(3)
+    _sum = numpy.zeros(3)
     for pt1, pt2 in zip(points1, points2):
         pt_3d = DLT(cam_mat1, cam_mat2, pt1, pt2)
-        sum += pt_3d
+        _sum += pt_3d
         points_3d.append(pt_3d)
+
     points_3d = numpy.array(points_3d)
-    avrg_points_3d = numpy.divide(sum,22)
-    points_3d = points_3d - avrg_points_3d
+    avg_points_3d = _sum / 22
+    points_3d -= avg_points_3d
 
-    matches_cy_projected = numpy.ones(shape=(8,8))
+    for i in range(len(colors)):
+        colors[i] = (colors[i][0] / 255, colors[i][1] / 255, colors[i][2] / 255)
 
-
+    plt.figure()
+    plt.ylabel('y')
+    plt.xlabel('x')
 
     for i in range(21):
-        cv2.line(matches_cy_projected, (int(points_3d[i][0]), int(points_3d[i][1])), (int(points_3d[i + 1][0]), int(points_3d[i + 1][1])),
-                 0, thickness=10)
+        plt.plot(points_3d[i][:2], points_3d[i + 1][:2], linestyle='solid', color=colors[i % len(colors)])
 
-    fig = px.imshow(matches_cy_projected)
-    fig.show()
+    plt.show()
+
+    # last task: create images in for loops as described in the pdf file, then create the gif
