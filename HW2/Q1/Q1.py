@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     r, c = im1.shape[:2]
     sed = 0
-    for r1, s in zip(lines1, s2):
+    for r1, s in zip(lines1, t2):
         x0, y0 = map(int, [0, -r1[2] / r1[1]])
         x1, y1 = map(int, [c, -(r1[2] + r1[0] * c) / r1[1]])
         p1 = np.asarray((x0, y0))
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
     r, c = im1.shape[:2]
     sed = 0
-    for r1, s in zip(lines1, t2):
+    for r1, s in zip(lines1, s2):
         x0, y0 = map(int, [0, -r1[2] / r1[1]])
         x1, y1 = map(int, [c, -(r1[2] + r1[0] * c) / r1[1]])
         p1 = np.asarray((x0, y0))
