@@ -96,11 +96,14 @@ def create_images(points, directory_path):
         plt.figure()
         plt.ylim(-4, 4)
         plt.xlim(-4, 4)
-        plt.scatter(x_coordinates, y_coordinates)
+        plt.scatter(x_coordinates, y_coordinates, marker='+')
         plt.ylabel('y')
         plt.xlabel('x')
 
-        plt.plot(x_coordinates, y_coordinates)
+        for ind in range(len(xis) - 1):
+            plt.plot((x_coordinates[ind], x_coordinates[ind + 1]), (y_coordinates[ind], y_coordinates[ind + 1]),
+                     c=colors[ind % len(colors)])
+
         plt.savefig(directory_path + 'plot' + str(image_num) + '.jpg')
         image_num += 1
 
@@ -127,11 +130,14 @@ def create_images(points, directory_path):
         plt.ylim(-4, 4)
         plt.xlim(-4, 4)
 
-        plt.scatter(x_coordinates, y_coordinates)
+        plt.scatter(x_coordinates, y_coordinates, marker='+')
         plt.ylabel('y')
         plt.xlabel('x')
 
-        plt.plot(x_coordinates, y_coordinates)
+        for ind in range(len(xis) - 1):
+            plt.plot((x_coordinates[ind], x_coordinates[ind + 1]), (y_coordinates[ind], y_coordinates[ind + 1]),
+                     c=colors[ind % len(colors)])
+
         plt.savefig(directory_path + 'plot' + str(image_num) + '.jpg')
         image_num += 1
 
@@ -213,7 +219,7 @@ if __name__ == "__main__":
         (0, 255, 255),
         (0, 0, 255),
         (255, 0, 255),
-        (0, 255, 255)
+        (0, 255, 255),
     ]
 
     for i in range(len(points1) - 1):
@@ -262,13 +268,15 @@ if __name__ == "__main__":
         xis.append(point_3d[0])
         yis.append(point_3d[1])
 
-    plt.scatter(xis, yis)
+    plt.scatter(xis, yis, marker='+')
+
     plt.ylabel('y')
     plt.xlabel('x')
     plt.ylim(-4, 4)
     plt.xlim(-4, 4)
 
-    plt.plot(xis, yis)
+    for i in range(len(xis) - 1):
+        plt.plot((xis[i], xis[i + 1]), (yis[i], yis[i + 1]), c=colors[i % len(colors)])
 
     plt.savefig('our_matches_xy_projected.jpg')
     plt.show()
@@ -286,13 +294,15 @@ if __name__ == "__main__":
         xis.append(point_3d[0])
         yis.append(point_3d[1])
 
-    plt.scatter(xis, yis)
+    plt.scatter(xis, yis, marker='+')
     plt.ylabel('y')
     plt.xlabel('x')
     plt.ylim(-4, 4)
     plt.xlim(-4, 4)
 
-    plt.plot(xis, yis)
+    for i in range(len(xis) - 1):
+        plt.plot((xis[i], xis[i + 1]), (yis[i], yis[i + 1]), c=colors[i % len(colors)])
+
     plt.show()
 
     path = os.path.join(os.getcwd(), dir_name)
