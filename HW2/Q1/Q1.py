@@ -25,13 +25,13 @@ def getImagePts(image1, image2, var_name1, var_name2):
     np.save(var_name2 + '.npy', np.concatenate((np.round(pts), np.ones((np.shape(pts)[0]))[:, np.newaxis]), axis=1))
 
 
-def draw_lines(img1, img2, lines, pts1, pts2):
+def draw_lines(img1, img2, lines, pts1, pts2, used_colors):
     """ img1 - image on which we draw the epilines for the points in img2 lines - corresponding epilines. """
     r_, c_ = img1.shape[:2]
 
     i = 0
     for r1_, pt1, pt2 in zip(lines, pts1, pts2):
-        color = colors[i]
+        color = used_colors[i]
         x_0, y_0 = map(int, [0, -r1_[2] / r1_[1]])
         x_1, y_1 = map(int, [c_, -(r1_[2] + r1_[0] * c_) / r1_[1]])
         img1 = cv2.line(img1, (x_0, y_0), (x_1, y_1), color, 1)
@@ -108,10 +108,10 @@ if __name__ == "__main__":
             im2_copy = deepcopy(im2)
 
             lines1 = cv2.computeCorrespondEpilines(x2.reshape(-1, 1, 2), 2, F1).reshape(-1, 3)
-            im1_res, _ = draw_lines(im1_copy, im2_copy, lines1, x1, x2)
+            im1_res, _ = draw_lines(im1_copy, im2_copy, lines1, x1, x2, colors)
 
             lines2 = cv2.computeCorrespondEpilines(x1.reshape(-1, 1, 2), 1, F1).reshape(-1, 3)
-            _, im2_res = draw_lines(im2_copy, im1_copy, lines2, x2, x1)
+            im2_res, _ = draw_lines(im2_copy, im1_copy, lines2, x2, x1, colors)
 
             curr_sed = calc_SED(x1, x2, lines1, lines2)
 
