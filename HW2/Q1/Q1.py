@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2
+import cv2.cv2 as cv2
 from copy import deepcopy
-from numpy.linalg import norm
 
 
 def tellme(msg, img):
@@ -117,7 +116,7 @@ if __name__ == "__main__":
             lines2 = cv2.computeCorrespondEpilines(x1.reshape(-1, 1, 2), 1, F1).reshape(-1, 3)
             _, im2_res = draw_lines(im2_copy, im1_copy, lines2, x2, x1)
 
-            curr_sed = calc_SED()   # TODO: send the right parameters
+            curr_sed = calc_SED(x1, lines1, lines2)
 
             plt.figure()
             plt.suptitle('SED = ' + str(curr_sed))
