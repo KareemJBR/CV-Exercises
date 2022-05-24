@@ -56,13 +56,8 @@ def calc_SED(s_1, s_2, l_, l_tag):
 
     for ind in range(p_.shape[0]):
         x, y, a, b, c_ = p_[ind][0], p_[ind][1], l_[ind][0], l_[ind][1], l_[ind][2]
-
         dist1 = 1 / (abs(a * x + b * y + c_) / (a ** 2 + b ** 2))
-
-        try:
-            x, y, a, b, c_ = p_tag[ind][0], p_tag[ind][1], l_tag[ind][0], l_tag[ind][1], l_tag[ind][2]
-        except IndexError:
-            print(p_tag, l_tag, sep='\n***************************************************\n')
+        x, y, a, b, c_ = p_tag[ind][0], p_tag[ind][1], l_tag[ind][0], l_tag[ind][1], l_tag[ind][2]
 
         dist2 = abs(a * x + b * y + c_) / np.sqrt(a ** 2 + b ** 2)
         res += np.sqrt(dist1 ** 2 + dist2 ** 2)
