@@ -49,21 +49,21 @@ def get_random_rotation_matrix():
     alpha, beta, gamma = random.uniform(0, 360), random.uniform(0, 360), random.uniform(0, 360)     # random degrees
 
     yaw = np.array([
-        [np.cos(alpha), -1 * np.sin(alpha), 0],
-        [np.sin(alpha), np.cos(alpha), 0],
+        [np.cos(2 * np.pi * alpha / 360), -1 * np.sin(2 * np.pi * alpha / 360), 0],
+        [np.sin(2 * np.pi * alpha / 360), np.cos(2 * np.pi * alpha / 360), 0],
         [0, 0, 1]
     ])
 
     pitch = np.array([
-        [np.cos(beta), 0, np.sin(beta)],
+        [np.cos(2 * np.pi * beta / 360), 0, np.sin(2 * np.pi * beta / 360)],
         [0, 1, 0],
-        [-1 * np.sin(beta), 0, np.cos(beta)]
+        [-1 * np.sin(2 * np.pi * beta / 360), 0, np.cos(2 * np.pi * beta / 360)]
     ])
 
     roll = np.array([
         [1, 0, 0],
-        [0, np.cos(gamma), -1 * np.sin(gamma)],
-        [0, np.sin(gamma), np.cos(gamma)]
+        [0, np.cos(2 * np.pi * gamma / 360), -1 * np.sin(2 * np.pi * gamma / 360)],
+        [0, np.sin(2 * np.pi * gamma / 360), np.cos(2 * np.pi * gamma / 360)]
     ])
 
     # shall multiply in the order: yaw * pitch * roll
@@ -110,7 +110,7 @@ def create_images(points, scatters_colors, directory_path):
 
         image_num += 1      # avoiding overwriting jpg files
 
-    for degree in range(0, 361, 10):
+    for degree in range(0, 361, 10):    # y loop
         y_rotate = np.array([
             [np.cos(2 * np.pi * degree / 360), 0, np.sin(2 * np.pi * degree / 360)],
             [0, 1, 0],
