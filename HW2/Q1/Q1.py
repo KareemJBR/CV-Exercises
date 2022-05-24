@@ -28,13 +28,13 @@ def getImagePts(image1, image2, var_name1, var_name2):
 
 def draw_lines(img1, img2, lines, pts1, pts2):
     """ img1 - image on which we draw the epilines for the points in img2 lines - corresponding epilines. """
+    r_, c_ = img1.shape[:2]
 
     i = 0
     for r1_, pt1, pt2 in zip(lines, pts1, pts2):
-        # color = tuple(np.random.randint(0, 255, 3).tolist())
         color = colors[i]
         x_0, y_0 = map(int, [0, -r1_[2] / r1_[1]])
-        x_1, y_1 = map(int, [c, -(r1_[2] + r1_[0] * c) / r1_[1]])
+        x_1, y_1 = map(int, [c_, -(r1_[2] + r1_[0] * c_) / r1_[1]])
         img1 = cv2.line(img1, (x_0, y_0), (x_1, y_1), color, 1)
         img1 = cv2.circle(img1, (pt1[0], pt1[1]), 5, color, -1)
         img2 = cv2.circle(img2, (pt2[0], pt2[1]), 5, color, -1)
@@ -70,8 +70,9 @@ if __name__ == "__main__":
         (100, 200, 200),
         (50, 150, 255),
     ]
-    originalm1 = deepcopy(im1)
-    originalm2 = deepcopy(im2)
+
+    original_im1 = deepcopy(im1)
+    original_im2 = deepcopy(im2)
     # Find epilines corresponding to the points in right image (second image) and
     # drawing its lines on left image
     lines1 = cv2.computeCorrespondEpilines(t2.reshape(-1, 1, 2), 2, F1)
@@ -108,8 +109,8 @@ if __name__ == "__main__":
 
     # the second set
 
-    im1 = originalm1
-    im2 = originalm2
+    im1 = original_im1
+    im2 = original_im2
     # Find epilines corresponding to the points in right image (second image) and
     # drawing its lines on left image
     lines1 = cv2.computeCorrespondEpilines(s2.reshape(-1, 1, 2), 2, F1)
