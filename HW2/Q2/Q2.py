@@ -7,6 +7,23 @@ import imageio
 from copy import deepcopy
 
 
+def create_directory(directory_name):
+    """Creates an empty directory in the current path."""
+
+    # parent directory path
+    parent_dir = os.getcwd()
+
+    # path
+    dir_path = os.path.join(parent_dir, directory_name)
+
+    try:
+        os.mkdir(dir_path)  # created the directory for images to use in creating the gif
+
+    except FileExistsError:
+        # directory already exists ... nothing is needed to be done
+        pass
+
+
 def create_gif(image_base_name, start_num, end_num, images_directory):
     """
     Creates a GIF file from the plots saved as JPG files.
@@ -57,11 +74,11 @@ def create_images(points, directory_path):
     """Creates the images needed for creating the GIF as described in the PDF file."""
     image_num = 1
 
-    for degree in range(10, 361, 10):
+    for degree in range(0, 361, 10):
         x_rotate = np.array([
             [1, 0, 0],
-            [0, np.cos(degree / 360), -1 * np.cos(degree / 360)],
-            [0, np.sin(degree / 360), np.cos(degree / 360)]
+            [0, np.cos(2 * np.pi * degree / 360), -1 * np.sin(2 * np.pi * degree / 360)],
+            [0, np.sin(2 * np.pi * degree / 360), np.cos(2 * np.pi * degree / 360)]
         ])
 
         res = []
@@ -77,6 +94,8 @@ def create_images(points, directory_path):
             y_coordinates.append(point[1])
 
         plt.figure()
+        plt.ylim(-4, 4)
+        plt.xlim(-4, 4)
         plt.scatter(x_coordinates, y_coordinates)
         plt.ylabel('y')
         plt.xlabel('x')
@@ -85,11 +104,11 @@ def create_images(points, directory_path):
         plt.savefig(directory_path + 'plot' + str(image_num) + '.jpg')
         image_num += 1
 
-    for degree in range(10, 361, 10):
+    for degree in range(0, 361, 10):
         y_rotate = np.array([
-            [np.cos(degree / 360), 0, np.sin(degree / 360)],
+            [np.cos(2 * np.pi * degree / 360), 0, np.sin(2 * np.pi * degree / 360)],
             [0, 1, 0],
-            [-1 * np.sin(degree / 360), 0, np.cos(degree / 360)]
+            [-1 * np.sin(2 * np.pi * degree / 360), 0, np.cos(2 * np.pi * degree / 360)]
         ])
 
         res = []
@@ -105,6 +124,9 @@ def create_images(points, directory_path):
             y_coordinates.append(point[1])
 
         plt.figure()
+        plt.ylim(-4, 4)
+        plt.xlim(-4, 4)
+
         plt.scatter(x_coordinates, y_coordinates)
         plt.ylabel('y')
         plt.xlabel('x')
@@ -214,20 +236,8 @@ if __name__ == "__main__":
     # task 2
 
     # creating directory for images to use in creating the gif
-    dir_name = "ImagesForGIF"
-
-    # parent directory path
-    parent_dir = os.getcwd()
-
-    # path
-    path = os.path.join(parent_dir, dir_name)
-
-    try:
-        os.mkdir(path)  # created the directory for images to use in creating the gif
-
-    except FileExistsError as e:
-        # directory already exists ... nothing is needed to be done
-        pass
+    dir_name = 'ImagesForGIF'
+    create_directory(dir_name)
 
     points_3d = []
     _sum = np.zeros(3)
@@ -255,6 +265,8 @@ if __name__ == "__main__":
     plt.scatter(xis, yis)
     plt.ylabel('y')
     plt.xlabel('x')
+    plt.ylim(-4, 4)
+    plt.xlim(-4, 4)
 
     plt.plot(xis, yis)
 
@@ -277,9 +289,13 @@ if __name__ == "__main__":
     plt.scatter(xis, yis)
     plt.ylabel('y')
     plt.xlabel('x')
+    plt.ylim(-4, 4)
+    plt.xlim(-4, 4)
 
     plt.plot(xis, yis)
     plt.show()
 
+    path = os.path.join(os.getcwd(), dir_name)
+
     create_images(points_3d, path + '\\')
-    create_gif('plot', 1, 72, path + '\\')
+    create_gif('plot', 1, 74, path + '\\')
