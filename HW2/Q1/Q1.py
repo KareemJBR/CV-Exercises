@@ -42,15 +42,16 @@ def draw_lines(img1, img2, lines, pts1, pts2):
     return img1, img2
 
 
-def calc_SED(s_1, l_, l_tag):
+def calc_SED(s_1, s_2, l_, l_tag):
     """
-
-    :param s_1:
-    :param l_:
-    :param l_tag:
-    :return:
+    Calculates the value of SED.
+    :param s_1: The 10 points in the first image.
+    :param s_2: The corresponded 10 points in the second image.
+    :param l_: The lines created from matching the first image to the second one.
+    :param l_tag: The lines created from matching the second image to the first one.
+    :return: The value of SED as float.
     """
-    p_, p_tag = s_1[:10], s_1[10:]
+    p_, p_tag = s_1[:10], s_2[:10]
     res = 0
 
     for ind in range(p_.shape[0]):
@@ -58,7 +59,10 @@ def calc_SED(s_1, l_, l_tag):
 
         dist1 = 1 / (abs(a * x + b * y + c_) / (a ** 2 + b ** 2))
 
-        x, y, a, b, c_ = p_tag[ind][0], p_tag[ind][1], l_tag[ind][0], l_tag[ind][1], l_tag[ind][2]
+        try:
+            x, y, a, b, c_ = p_tag[ind][0], p_tag[ind][1], l_tag[ind][0], l_tag[ind][1], l_tag[ind][2]
+        except IndexError:
+            print(p_tag, l_tag, sep='\n***************************************************\n')
 
         dist2 = abs(a * x + b * y + c_) / np.sqrt(a ** 2 + b ** 2)
         res += np.sqrt(dist1 ** 2 + dist2 ** 2)
@@ -92,23 +96,23 @@ if __name__ == "__main__":
     sets = [(loc2_frame1, loc2_frame2, 'loc2'), (loc1_frame1, loc2_frame2, 'loc1')]
 
     for im1, im2, file_prefix in sets:
-        im1_copy = deepcopy(im1)
-        im2_copy = deepcopy(im2)
 
         getImagePts(im1, im2, file_prefix + 's1', file_prefix + 's2')
         getImagePts(im1, im2, file_prefix + 't1', file_prefix + 't2')
 
-        s1 = np.load(file_prefix + 's1.npy').astype(float)  # first set - left image points
-        s2 = np.load(file_prefix + 's2.npy').astype(float)  # first set - right image points
+        s1 = np.load(file_prefix + '_' + 's1.npy').astype(int)  # first set - left image points
+        s2 = np.load(file_prefix + '_' + 's2.npy').astype(int)  # first set - right image points
 
-        t1 = np.load(file_prefix + 't1.npy').astype(float)  # second set - left image points
-        t2 = np.load(file_prefix + 't2.npy').astype(float)  # second set - right image points
+        t1 = np.load(file_prefix + '_' + 't1.npy').astype(int)  # second set - left image points
+        t2 = np.load(file_prefix + '_' + 't2.npy').astype(int)  # second set - right image points
 
         F1, mask1 = cv2.findFundamentalMat(s1, s2, cv2.FM_8POINT)
 
         # ------------------------------------------- all good -------------------------------------------------------#
 
         for x1, x2, file_name_suffix in [(s1, s2, 'S1'), (t1, t2, 'S2')]:
+            im1_copy = deepcopy(im1)
+            im2_copy = deepcopy(im2)
 
             lines1 = cv2.computeCorrespondEpilines(x2.reshape(-1, 1, 2), 2, F1).reshape(-1, 3)
             im1_res, _ = draw_lines(im1_copy, im2_copy, lines1, x1, x2)
@@ -116,7 +120,7 @@ if __name__ == "__main__":
             lines2 = cv2.computeCorrespondEpilines(x1.reshape(-1, 1, 2), 1, F1).reshape(-1, 3)
             _, im2_res = draw_lines(im2_copy, im1_copy, lines2, x2, x1)
 
-            curr_sed = calc_SED(x1, lines1, lines2)
+            curr_sed = calc_SED(x1, x2, lines1, lines2)
 
             plt.figure()
             plt.suptitle('SED = ' + str(curr_sed))
