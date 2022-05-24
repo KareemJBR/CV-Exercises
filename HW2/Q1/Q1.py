@@ -88,12 +88,12 @@ if __name__ == "__main__":
         (50, 150, 255),
     ]
 
-    sets = [(loc2_frame1, loc2_frame2, 'loc2'), (loc1_frame1, loc2_frame2, 'loc1')]
+    sets = [(loc2_frame1, loc2_frame2, 'loc2'), (loc1_frame1, loc1_frame2, 'loc1')]
 
     for im1, im2, file_prefix in sets:
 
-        getImagePts(im1, im2, file_prefix + 's1', file_prefix + 's2')
-        getImagePts(im1, im2, file_prefix + 't1', file_prefix + 't2')
+        getImagePts(im1, im2, file_prefix + '_s1', file_prefix + '_s2')
+        getImagePts(im1, im2, file_prefix + '_t1', file_prefix + '_t2')
 
         s1 = np.load(file_prefix + '_' + 's1.npy').astype(int)  # first set - left image points
         s2 = np.load(file_prefix + '_' + 's2.npy').astype(int)  # first set - right image points
@@ -102,8 +102,6 @@ if __name__ == "__main__":
         t2 = np.load(file_prefix + '_' + 't2.npy').astype(int)  # second set - right image points
 
         F1, mask1 = cv2.findFundamentalMat(s1, s2, cv2.FM_8POINT)
-
-        # ------------------------------------------- all good -------------------------------------------------------#
 
         for x1, x2, file_name_suffix in [(s1, s2, 'S1'), (t1, t2, 'S2')]:
             im1_copy = deepcopy(im1)
