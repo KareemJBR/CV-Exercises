@@ -43,20 +43,39 @@ def draw_lines(img1, img2, lines, pts1, pts2):
     return img1, img2
 
 
+def calc_SED(s_1, l_, l_tag):
+    """
+
+    :param s_1:
+    :param l_:
+    :param l_tag:
+    :return:
+    """
+    p_, p_tag = s_1[:10], s_1[10:]
+    res = 0
+
+    for ind in range(p_.shape[0]):
+        x, y, a, b, c_ = p_[ind][0], p_[ind][1], l_[ind][0], l_[ind][1], l_[ind][2]
+
+        dist1 = 1 / (abs(a * x + b * y + c_) / (a ** 2 + b ** 2))
+
+        x, y, a, b, c_ = p_tag[ind][0], p_tag[ind][1], l_tag[ind][0], l_tag[ind][1], l_tag[ind][2]
+
+        dist2 = abs(a * x + b * y + c_) / np.sqrt(a ** 2 + b ** 2)
+        res += np.sqrt(dist1 ** 2 + dist2 ** 2)
+
+    res /= 10
+
+    return res
+
+
 if __name__ == "__main__":
-    im1 = cv2.imread('location_2_frame_001.jpg')
-    im2 = cv2.imread('location_2_frame_002.jpg')
 
-    # getImagePts(im1, im2, 's1', 's2')     # TODO: uncomment after tests
-    # getImagePts(im1, im2, 't1', 't2')
+    loc2_frame1 = cv2.imread('location_2_frame_001.jpg')
+    loc2_frame2 = cv2.imread('location_2_frame_002.jpg')
 
-    s1 = np.load('s1.npy').astype(int)  # first set - left image points
-    s2 = np.load('s2.npy').astype(int)  # first set - right image points
-
-    t1 = np.load('t1.npy').astype(int)  # second set - left image points
-    t2 = np.load('t2.npy').astype(int)  # second set - right image points
-
-    F1, mask1 = cv2.findFundamentalMat(t1, t2, cv2.FM_8POINT)
+    loc1_frame1 = cv2.imread('location_1_frame_001.jpg')
+    loc1_frame2 = cv2.imread('location_1_frame_002.jpg')
 
     colors = [
         (255, 0, 0),
@@ -71,76 +90,42 @@ if __name__ == "__main__":
         (50, 150, 255),
     ]
 
-    original_im1 = deepcopy(im1)
-    original_im2 = deepcopy(im2)
-    # Find epilines corresponding to the points in right image (second image) and
-    # drawing its lines on left image
-    lines1 = cv2.computeCorrespondEpilines(t2.reshape(-1, 1, 2), 2, F1)
-    lines1 = lines1.reshape(-1, 3)
-    img5, img6 = draw_lines(im1, im2, lines1, t1, t2)
+    sets = [(loc2_frame1, loc2_frame2, 'loc2'), (loc1_frame1, loc2_frame2, 'loc1')]
 
-    # Find epilines corresponding to the points in left image (first image) and
-    # drawing its lines on right image
-    lines2 = cv2.computeCorrespondEpilines(t1.reshape(-1, 1, 2), 1, F1)
-    lines2 = lines2.reshape(-1, 3)
-    img3, img4 = draw_lines(im2, im1, lines2, t2, t1)
+    for im1, im2, file_prefix in sets:
+        im1_copy = deepcopy(im1)
+        im2_copy = deepcopy(im2)
 
-    r, c = im1.shape[:2]
-    sed = 0
-    for r1, s in zip(lines1, t2):
-        x0, y0 = map(int, [0, -r1[2] / r1[1]])
-        x1, y1 = map(int, [c, -(r1[2] + r1[0] * c) / r1[1]])
-        p1 = np.asarray((x0, y0))
-        p2 = np.asarray((x1, y1))
-        p3 = np.asarray((s[0], s[1]))
-        d = norm(np.cross(p2 - p1, p1 - p3)) / norm(p2 - p1)
-        sed += d**2
+        getImagePts(im1, im2, file_prefix + 's1', file_prefix + 's2')
+        getImagePts(im1, im2, file_prefix + 't1', file_prefix + 't2')
 
-    plt.figure()
-    plt.suptitle("SED = " + str(sed))
+        s1 = np.load(file_prefix + 's1.npy').astype(float)  # first set - left image points
+        s2 = np.load(file_prefix + 's2.npy').astype(float)  # first set - right image points
 
-    plt.subplot(1, 2, 1)
-    plt.imshow(img3)
+        t1 = np.load(file_prefix + 't1.npy').astype(float)  # second set - left image points
+        t2 = np.load(file_prefix + 't2.npy').astype(float)  # second set - right image points
 
-    plt.subplot(1, 2, 2)
-    plt.imshow(img4)
-    plt.savefig('result.jpg')
-    plt.show()
+        F1, mask1 = cv2.findFundamentalMat(s1, s2, cv2.FM_8POINT)
 
-    # the second set
+        # ------------------------------------------- all good -------------------------------------------------------#
 
-    im1 = original_im1
-    im2 = original_im2
-    # Find epilines corresponding to the points in right image (second image) and
-    # drawing its lines on left image
-    lines1 = cv2.computeCorrespondEpilines(s2.reshape(-1, 1, 2), 2, F1)
-    lines1 = lines1.reshape(-1, 3)
-    img5, img6 = draw_lines(im1, im2, lines1, s1, s2)
+        for x1, x2, file_name_suffix in [(s1, s2, 'S1'), (t1, t2, 'S2')]:
 
-    # Find epilines corresponding to the points in left image (first image) and
-    # drawing its lines on right image
-    lines2 = cv2.computeCorrespondEpilines(s1.reshape(-1, 1, 2), 1, F1)
-    lines2 = lines2.reshape(-1, 3)
-    img3, img4 = draw_lines(im2, im1, lines2, s2, s1)
+            lines1 = cv2.computeCorrespondEpilines(x2.reshape(-1, 1, 2), 2, F1).reshape(-1, 3)
+            im1_res, _ = draw_lines(im1_copy, im2_copy, lines1, x1, x2)
 
-    r, c = im1.shape[:2]
-    sed = 0
-    for r1, s in zip(lines1, s2):
-        x0, y0 = map(int, [0, -r1[2] / r1[1]])
-        x1, y1 = map(int, [c, -(r1[2] + r1[0] * c) / r1[1]])
-        p1 = np.asarray((x0, y0))
-        p2 = np.asarray((x1, y1))
-        p3 = np.asarray((s[0], s[1]))
-        d = norm(np.cross(p2 - p1, p1 - p3)) / norm(p2 - p1)
-        sed += d**2
+            lines2 = cv2.computeCorrespondEpilines(x1.reshape(-1, 1, 2), 1, F1).reshape(-1, 3)
+            _, im2_res = draw_lines(im2_copy, im1_copy, lines2, x2, x1)
 
-    plt.figure()
-    plt.suptitle("SED = " + str(sed))
+            curr_sed = calc_SED()   # TODO: send the right parameters
 
-    plt.subplot(1, 2, 1)
-    plt.imshow(img3)
+            plt.figure()
+            plt.suptitle('SED = ' + str(curr_sed))
 
-    plt.subplot(1, 2, 2)
-    plt.imshow(img4)
-    plt.savefig('result.jpg')
-    plt.show()
+            plt.subplot(1, 2, 1)
+            plt.imshow(im1_res)
+            plt.subplot(1, 2, 2)
+            plt.imshow(im2_res)
+
+            plt.savefig(file_prefix + '_' + file_name_suffix + '.jpg')
+            plt.show()
