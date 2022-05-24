@@ -28,14 +28,14 @@ def getImagePts(image1, image2, var_name1, var_name2):
 
 def draw_lines(img1, img2, lines, pts1, pts2):
     """ img1 - image on which we draw the epilines for the points in img2 lines - corresponding epilines. """
-    r, c = img1.shape[:2]
+
     i = 0
-    for r1, pt1, pt2 in zip(lines, pts1, pts2):
+    for r1_, pt1, pt2 in zip(lines, pts1, pts2):
         # color = tuple(np.random.randint(0, 255, 3).tolist())
         color = colors[i]
-        x0, y0 = map(int, [0, -r1[2] / r1[1]])
-        x1, y1 = map(int, [c, -(r1[2] + r1[0] * c) / r1[1]])
-        img1 = cv2.line(img1, (x0, y0), (x1, y1), color, 1)
+        x_0, y_0 = map(int, [0, -r1_[2] / r1_[1]])
+        x_1, y_1 = map(int, [c, -(r1_[2] + r1_[0] * c) / r1_[1]])
+        img1 = cv2.line(img1, (x_0, y_0), (x_1, y_1), color, 1)
         img1 = cv2.circle(img1, (pt1[0], pt1[1]), 5, color, -1)
         img2 = cv2.circle(img2, (pt2[0], pt2[1]), 5, color, -1)
         i += 1
@@ -106,9 +106,7 @@ if __name__ == "__main__":
     plt.savefig('result.jpg')
     plt.show()
 
-
-
-#the second set
+    # the second set
 
     im1 = originalm1
     im2 = originalm2
