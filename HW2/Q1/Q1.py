@@ -5,6 +5,12 @@ from copy import deepcopy
 
 
 def tellme(msg, img):
+    """
+    This function displays a plot with a message to the user.
+    :param msg: The message to display as a title of the plot.
+    :param img: The image to plot.
+    :return: None
+    """
     plt.imshow(img, cmap='gray', vmin=0, vmax=255)
     plt.setp(plt.gca())
     plt.title(msg, fontsize=12)
@@ -12,6 +18,14 @@ def tellme(msg, img):
 
 
 def getImagePts(image1, image2, var_name1, var_name2):
+    """
+    This function gets 10 points for each image entered by the user.
+    :param image1: The first image.
+    :param image2: The second image.
+    :param var_name1: The name of the variable in which we will save the 10 points for the first image.
+    :param var_name2: The name of th variable in which we will save the 10 points for the second image.
+    :return: None
+    """
     # first image
     tellme('please select 10 points in for this image', image1)
     pts = np.asarray(plt.ginput(10, timeout=-1, show_clicks=True))
