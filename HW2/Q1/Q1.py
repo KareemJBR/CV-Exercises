@@ -30,6 +30,8 @@ def getImagePts(image1, image2, var_name1, var_name2):
     tellme('please select 10 points in for this image', image1)
     pts = np.asarray(plt.ginput(10, timeout=-1, show_clicks=True))
     plt.close()
+
+    # shall save the points in .npy files
     np.save(var_name1 + '.npy', np.concatenate((np.round(pts), np.ones((np.shape(pts)[0]))[:, np.newaxis]), axis=1))
 
     # second image
@@ -77,19 +79,20 @@ def calc_SED(s_1, s_2, l_, l_tag):
         res += np.sqrt(dist1 ** 2 + dist2 ** 2)
 
     res /= 10
-
     return res
 
 
 if __name__ == "__main__":
 
+    # first location frames
     loc2_frame1 = cv2.imread('location_2_frame_001.jpg')
     loc2_frame2 = cv2.imread('location_2_frame_002.jpg')
 
+    # second location frames
     loc1_frame1 = cv2.imread('location_1_frame_001.jpg')
     loc1_frame2 = cv2.imread('location_1_frame_002.jpg')
 
-    colors = [
+    colors = [      # colors to be used plotting the points and lines
         (255, 0, 0),
         (255, 255, 0),
         (255, 255, 255),
@@ -105,6 +108,9 @@ if __name__ == "__main__":
     sets = [(loc2_frame1, loc2_frame2, 'loc2'), (loc1_frame1, loc1_frame2, 'loc1')]
 
     for im1, im2, file_prefix in sets:
+
+        # *** for creating new points uncomment the following two lines ***
+
         # getImagePts(im1, im2, file_prefix + '_s1', file_prefix + '_s2')
         # getImagePts(im1, im2, file_prefix + '_t1', file_prefix + '_t2')
 
@@ -114,11 +120,14 @@ if __name__ == "__main__":
         t1 = np.load(file_prefix + '_' + 't1.npy').astype(int)  # second set - left image points
         t2 = np.load(file_prefix + '_' + 't2.npy').astype(int)  # second set - right image points
 
+        # find the fundamental matrix using the calculation set
         F1, mask1 = cv2.findFundamentalMat(s1, s2, cv2.FM_8POINT)
 
         for x1, x2, file_name_suffix in [(s1, s2, 'S1'), (t1, t2, 'S2')]:
             im1_copy = deepcopy(im1)
             im2_copy = deepcopy(im2)
+
+            # finding the epilines using OpenCV
 
             lines1 = cv2.computeCorrespondEpilines(x2.reshape(-1, 1, 2), 2, F1).reshape(-1, 3)
             im1_res, _ = draw_lines(im1_copy, im2_copy, lines1, x1, x2, colors)
@@ -127,14 +136,14 @@ if __name__ == "__main__":
             im2_res, _ = draw_lines(im2_copy, im1_copy, lines2, x2, x1, colors)
 
             curr_sed = calc_SED(x1, x2, lines1, lines2)
+            # we will display the SED value as the title of the plot
 
             plt.figure()
             plt.suptitle('SED = ' + str(curr_sed))
-
             plt.subplot(1, 2, 1)
             plt.imshow(im1_res)
             plt.subplot(1, 2, 2)
             plt.imshow(im2_res)
 
-            plt.savefig(file_prefix + '_' + file_name_suffix + '.jpg')
-            plt.show()
+            plt.savefig(file_prefix + '_' + file_name_suffix + '.jpg')      # saving the plot
+            plt.show()              # showing the plot
