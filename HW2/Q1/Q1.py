@@ -34,7 +34,7 @@ def draw_lines(img1, img2, lines, pts1, pts2, used_colors):
         color = used_colors[i]
         x_0, y_0 = map(int, [0, -r1_[2] / r1_[1]])
         x_1, y_1 = map(int, [c_, -(r1_[2] + r1_[0] * c_) / r1_[1]])
-        img1 = cv2.line(img1, (x_0, y_0), (x_1, y_1), color, 1)
+        img1 = cv2.line(img1, (x_0, y_0), (x_1, y_1), color, 2)
         img1 = cv2.circle(img1, (pt1[0], pt1[1]), 5, color, -1)
         img2 = cv2.circle(img2, (pt2[0], pt2[1]), 5, color, -1)
         i += 1
@@ -91,9 +91,8 @@ if __name__ == "__main__":
     sets = [(loc2_frame1, loc2_frame2, 'loc2'), (loc1_frame1, loc1_frame2, 'loc1')]
 
     for im1, im2, file_prefix in sets:
-
-        getImagePts(im1, im2, file_prefix + '_s1', file_prefix + '_s2')
-        getImagePts(im1, im2, file_prefix + '_t1', file_prefix + '_t2')
+        # getImagePts(im1, im2, file_prefix + '_s1', file_prefix + '_s2')
+        # getImagePts(im1, im2, file_prefix + '_t1', file_prefix + '_t2')
 
         s1 = np.load(file_prefix + '_' + 's1.npy').astype(int)  # first set - left image points
         s2 = np.load(file_prefix + '_' + 's2.npy').astype(int)  # first set - right image points
