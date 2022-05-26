@@ -318,6 +318,6 @@ if __name__ == "__main__":
 
     path = os.path.join(os.getcwd(), dir_name)
 
-    create_images(points_3d, colors_for_scatters, path + '\\')      # creating the jpg files in the new directory
+    create_images(points_3d, colors_for_scatters, path + '/')      # creating the jpg files in the new directory
 
-    create_gif('plot', 1, 74, path + '\\')      # we create the gif using the jpg files we created
+    create_gif('plot', 1, 74, path + '/')      # we create the gif using the jpg files we created
