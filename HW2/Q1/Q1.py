@@ -58,28 +58,28 @@ def draw_lines(img1, img2, lines, pts1, pts2, used_colors):
     return img1, img2
 
 
-def calc_SED(s_1, s_2, l_, l_tag):
+def calc_SED(mat, pts1, pts2):
     """
-    Calculates the value of SED.
-    :param s_1: The 10 points in the first image.
-    :param s_2: The corresponded 10 points in the second image.
-    :param l_: The lines created from matching the first image to the second one.
-    :param l_tag: The lines created from matching the second image to the first one.
+    This function calculates the value of SED based on a fundamental matrix.
+    :param mat: The fundamental matrix to use.
+    :param pts1: The points of the image in the first view.
+    :param pts2: The corresponded points in the image of the second view.
     :return: The value of SED as float.
     """
-    p_, p_tag = s_1[:10], s_2[:10]
     res = 0
 
-    for ind in range(p_.shape[0]):
-        x, y, a, b, c_ = p_[ind][0], p_[ind][1], l_[ind][0], l_[ind][1], l_[ind][2]
-        dist1 = 1 / (abs(a * x + b * y + c_) / (a ** 2 + b ** 2))
-        x, y, a, b, c_ = p_tag[ind][0], p_tag[ind][1], l_tag[ind][0], l_tag[ind][1], l_tag[ind][2]
+    for point1, point2 in zip(pts1, pts2):
+        vec2 = np.matmul(mat, point1.T)
+        vec2 = vec2.T
+        divisor = np.sqrt(np.square(vec2[0]) + np.square(vec2[1]))
+        d1 = np.matmul(point2, vec2.T / divisor)
+        vec1 = np.matmul(mat.T, point2.T)
+        vec1 = vec1.T
+        divisor = np.sqrt(np.square(vec1[0]) + np.square(vec1[1]))
+        d2 = np.matmul(point1, vec1.T / divisor)
+        res += d1 + d2
 
-        dist2 = abs(a * x + b * y + c_) / np.sqrt(a ** 2 + b ** 2)
-        res += np.sqrt(dist1 ** 2 + dist2 ** 2)
-
-    res /= 10
-    return res
+    return abs(res) / 10
 
 
 if __name__ == "__main__":
@@ -135,7 +135,7 @@ if __name__ == "__main__":
             lines2 = cv2.computeCorrespondEpilines(x1.reshape(-1, 1, 2), 1, F1).reshape(-1, 3)
             im2_res, _ = draw_lines(im2_copy, im1_copy, lines2, x2, x1, colors)
 
-            curr_sed = calc_SED(x1, x2, lines1, lines2)
+            curr_sed = calc_SED(F1, x1, x2)
             # we will display the SED value as the title of the plot
 
             plt.figure()
