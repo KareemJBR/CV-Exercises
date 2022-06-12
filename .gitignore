@@ -136,4 +136,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Large datasets
+HW3/Q1/MNIST/
+HW3/Q1/data
+
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,windows
