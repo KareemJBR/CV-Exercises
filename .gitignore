@@ -138,6 +138,7 @@ $RECYCLE.BIN/
 
 # Large datasets
 HW3/Q1/MNIST/
-HW3/Q1/data
+HW3/Q1/cifar-10-batches-py/
+*.tar.gz
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,windows
