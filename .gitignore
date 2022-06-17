@@ -140,5 +140,6 @@ $RECYCLE.BIN/
 HW3/Q1/MNIST/
 HW3/Q1/cifar-10-batches-py/
 *.tar.gz
+HW3/Q2/data/ex3_P2_data_public.npz
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,windows
